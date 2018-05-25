@@ -16,7 +16,7 @@ io.on('connection', function(socket){
   socket.broadcast.emit('newConnection',generateMessage('admin','msg'));
 
     socket.on('disconnect', ()=>{
-        io.emit('disconnected', generateMessage('admin'))
+        io.emit('disconnected', generateMessage('admin',''))
     });
 
     socket.on('chat message', function(msg){
