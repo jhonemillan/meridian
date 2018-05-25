@@ -3,6 +3,7 @@ var path = require('path');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+const { generateMessage } = require('./utils/message');
 
 app.use(express.static(path.join(__dirname, './public')));
 
@@ -11,11 +12,11 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
-  socket.broadcast.emit('newConnection');
+ 
+  socket.broadcast.emit('newConnection',generateMessage('admin','msg'));
 
     socket.on('disconnect', ()=>{
-        console.log('user disconnected');
+        io.emit('disconnected', generateMessage('admin'))
     });
 
     socket.on('chat message', function(msg){
