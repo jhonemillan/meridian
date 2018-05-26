@@ -3,13 +3,24 @@ var path = require('path');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+const moment = require('moment');
+
 const { generateMessage } = require('./utils/message');
 
 app.use(express.static(path.join(__dirname, './public')));
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(__dirname + '/login.html');
 });
+
+app.get('/login', (req, res)=>{
+  res.sendFile(__dirname + '/public/login.html');
+});
+
+app.get('/chat', (req, res)=>{
+  res.sendFile(__dirname + '/public/index.html');
+});
+
 
 io.on('connection', function(socket){
  
@@ -21,7 +32,7 @@ io.on('connection', function(socket){
 
     socket.on('chat message', function(msg){
         console.log('message: ' + msg + ' at:' + new Date());
-        io.emit('sentchat',{msg: msg});
+        io.emit('sentchat',{msg: moment().format('hh:mm a: ') + msg});
       });
 });
 
