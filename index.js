@@ -4,23 +4,66 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 const moment = require('moment');
+let passport = require('passport');
+let auth = require('./utils/auth');
+const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 
 const { generateMessage } = require('./utils/message');
 
-app.use(express.static(path.join(__dirname, './public')));
+auth(passport);
+app.set('view engine', 'ejs');
+
+//app.use(express.static(path.join(__dirname, './public')));
+
+app.use(cookieSession({
+  name: 'session',
+  keys: ['123']
+}));
+
+app.use(passport.initialize());
+app.use(cookieParser());
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/login.html');
+    if (req.session.token) {
+      res.cookie('token', req.session.token);
+      
+  } else {
+      res.cookie('token', '')
+      
+  }
+  res.render('index.ejs');
 });
 
 app.get('/login', (req, res)=>{
-  res.sendFile(__dirname + '/public/login.html');
+  res.render('login.ejs');
 });
 
-app.get('/chat', (req, res)=>{
-  res.sendFile(__dirname + '/public/index.html');
+app.get('/chat',isLoggedIn, (req, res)=>{  
+  console.log(req.session.user);  
+    res.render('chat',{user: req.session.user});  
 });
 
+app.get('/auth/google', passport.authenticate('google', {
+  scope: ['profile', 'email']
+}));
+
+app.get('/auth/google/callback',
+    passport.authenticate('google', {failureRedirect:'/', failureFlash: true}),
+    (req, res) => {
+        console.log(req.user.token);
+        req.session.token = req.user.token;        
+        req.session.user = req.user.profile.displayName;
+        
+        res.redirect('/chat');
+    }
+);
+
+app.get('/logout', (req, res) => {
+  req.logout();
+  req.session = null;
+  res.redirect('/');
+});
 
 io.on('connection', function(socket){
  
@@ -36,6 +79,16 @@ io.on('connection', function(socket){
       });
 });
 
+function isLoggedIn(req, res, next) {
+  console.log(req.isAuthenticated());
+  // if user is authenticated in the session, carry on
+  if (req.session.token)
+  {
+    return next();
+  }  
+  // if they aren't redirect them to the home page
+  res.redirect('/');
+}
 
 
 http.listen(3000, function(){

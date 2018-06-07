@@ -21,12 +21,8 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarCollapse">
         <ul class="navbar-nav mr-auto">
-          
           <li class="nav-item">
-            <a class="nav-link" href="/login">Login</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link " href="#">Logout</a>
+            <a class="nav-link " href="/logout">Logout</a>
           </li>
         </ul>
        
@@ -67,11 +63,11 @@
               });
 
               socket.on('sentchat', function(msg){                  
-                  $('#messages').append($('<li>').text(msg.msg));
+                  $('#messages').append($('<li>').text('<%= user %>'+' '+msg.msg));
               });
 
               socket.on('newConnection',function(){
-                $('#messages').append($('<li>').text('bienvenido user'));
+                $('#messages').append($('<li>').text('bienvenido <%= user %>'));
               })
             });
           </script>
